@@ -202,3 +202,5 @@ org.apache.flink.util.FlinkRuntimeException: Failed to send data to Kafka animal
 	at java.lang.Thread.run(Thread.java:750)
 Caused by: org.apache.flink.kafka.shaded.org.apache.kafka.common.errors.OutOfOrderSequenceException: The broker received an out of order sequence number.
 ```
+
+This is tracked in https://github.com/redpanda-data/redpanda/issues/4029. 

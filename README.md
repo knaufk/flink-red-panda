@@ -14,7 +14,7 @@ In some sense, it is also summarizes the capabilities of Apache Flink's Apache K
 ## Environment Setup
 
 ```
-docker-compse up -d
+docker-compose up -d
 ```
 This starts a local environment running consisting of Red Panda, a Flink Cluster and a SQL Client to submit Flink SQL queries to the Flink Cluster.
 
@@ -144,7 +144,7 @@ SELECT
 SELECT * FROM animal_sightings_total;
 ```
 
-### Writing Exactly-Once to Red Panda with Transactions (fails)
+### Writing Exactly-Once to Red Panda with Transactions ~~(fails)~~
 
 ```sql
 /* enable checkpointing on the Flink side */
@@ -181,8 +181,11 @@ CREATE TABLE animal_sightings_panda_txn (
 );
 
 INSERT INTO animal_sightings_panda_txn SELECT * FROM animal_sightings;
+
+/* See if it works by reading from the Red Panda topic */
+SELECT * FROM animal_sightings_panda_txn;
 ```
-Checking the Flink UI under https://localhost:8081 will show that the Job is restarting frequently with 
+Checking the Flink UI under https://localhost:8081 will now show that the Job is working correctly: 
 
 ```
 org.apache.flink.util.FlinkRuntimeException: Failed to send data to Kafka animal_sightings_txn-0@-1 with FlinkKafkaInternalProducer{transactionalId='flink-0-3', inTransaction=true, closed=false} 
@@ -204,3 +207,11 @@ Caused by: org.apache.flink.kafka.shaded.org.apache.kafka.common.errors.OutOfOrd
 ```
 
 This is tracked in https://github.com/redpanda-data/redpanda/issues/4029. 
+
+### Changelog since the issue at Redpanda was opened
+
+1. Flink was updated from Flink 1.14.4 to Flink 1.16.0
+   1. The Kafka Clients version was upgraded from 2.4.1 https://github.com/apache/flink/blob/release-1.14.4/flink-connectors/flink-connector-kafka/pom.xml#L39 to 3.2.3 https://github.com/apache/flink/blob/release-1.16.0/flink-connectors/flink-connector-kafka/pom.xml#L38
+   2. The Flink Kafka Connector was ported to the new SinkV2 API of Flink
+   3. A complete diff can be retrieved by checking out the Flink repo and all its tags and then run a `git diff release-1.14.4 release-1.16.0 -- flink-connectors/flink-connector-kafka`
+2. Redpanda was updated from v21.11.4 to v22.2.2
